@@ -1,0 +1,37 @@
+verify:
+  stage: test
+  before_script:
+    - npm install
+  script:
+    - npm run lint
+  except:
+    variables:
+      - $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+docker-build-develop:
+  stage: build
+  script:
+    - docker build -t "quiz-fe:$CI_COMMIT_REF_SLUG" --build-arg ACCOUNT_SERVICE=$CI_ACCOUNT_SERVICE_TEST --build-arg QUIZ_SERVICE=$CI_QUIZ_SERVICE_TEST --build-arg REDIRECT_URL=$CI_QUIZ_FE_TEST .
+  only:
+    - develop
+
+docker-deploy-develop:
+  stage: deploy
+  script:
+    - curl -X POST "$WEB_HOOK_DEPLOY_QUIZ_FE_DEVELOP"
+  only:
+    - develop
+
+docker-build-staging:
+  stage: build
+  script:
+    - docker build -t "quiz-fe:$CI_COMMIT_REF_SLUG" --build-arg ACCOUNT_SERVICE=$CI_ACCOUNT_SERVICE_STAGING --build-arg QUIZ_SERVICE=$CI_QUIZ_SERVICE_STAGING --build-arg REDIRECT_URL=$CI_QUIZ_FE_STAGING .
+  only:
+    - staging
+
+docker-deploy-staging:
+  stage: deploy
+  script:
+    - curl -X POST "$WEB_HOOK_DEPLOY_QUIZ_FE_STAGING"
+  only:
+    - staging
